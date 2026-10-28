@@ -1,0 +1,10 @@
+{
+  "name": "ecommerce-backend",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/server.js",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.0"
+  }
+}
