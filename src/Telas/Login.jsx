@@ -1,16 +1,29 @@
 import React, { useState } from "react";
 import { ShoppingBag, X } from "lucide-react";
 import loginIMG from "../Imagens/imgLogin.png";
+import { api } from "../services/api";
 
-export default function Login({ isOpen, onClose, onSwitchToRegister }) {
+// onLoginSuccess(usuario) é chamado com { id, nome, perfil } ('CLIENTE' ou 'ADMIN') quando o login dá certo.
+export default function Login({ isOpen, onClose, onSwitchToRegister, onLoginSuccess }) {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login:", { usuario, senha });
+    setErro("");
+    setEnviando(true);
+    try {
+      const usuarioLogado = await api.login(usuario.trim(), senha);
+      if (onLoginSuccess) onLoginSuccess(usuarioLogado);
+    } catch (err) {
+      setErro(err.message);
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -62,7 +75,8 @@ export default function Login({ isOpen, onClose, onSwitchToRegister }) {
                 Usuário
               </label>
               <input
-                type="usuario"
+                type="text"
+                autoComplete="username"
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
                 required
@@ -76,6 +90,7 @@ export default function Login({ isOpen, onClose, onSwitchToRegister }) {
               </label>
               <input
                 type="password"
+                autoComplete="current-password"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 required
@@ -83,11 +98,18 @@ export default function Login({ isOpen, onClose, onSwitchToRegister }) {
               />
             </div>
 
+            {erro && (
+              <p role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+                {erro}
+              </p>
+            )}
+
             <button
               type="submit"
-              className="w-full mt-6 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition [font-family:Roboto,sans-serif] "
+              disabled={enviando}
+              className="w-full mt-6 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed [font-family:Roboto,sans-serif] "
             >
-              Entrar
+              {enviando ? "Entrando..." : "Entrar"}
             </button>
 
             {/* Divisor Ou */}

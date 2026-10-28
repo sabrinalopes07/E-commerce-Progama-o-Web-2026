@@ -1,70 +1,44 @@
-# Getting Started with Create React App
+# E-commerce - Programação para Web I
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Projeto final da disciplina. Stack: **React** (front-end), **Node.js + Express** (back-end) e **MySQL** (banco).
 
-## Available Scripts
+```
+/                 Front-end (React + Tailwind). Telas em src/Telas, chamadas à API em src/services/api.js
+/backend          Back-end: API Express, sessão de usuário e camada Model (MySQL)
+  sql/schema.sql  Script que cria o banco e as 7 tabelas
+  src/model       Camada Model (Membro 1)
+  src/            Rotas, controllers e middlewares de login/sessão/cadastro (Membro 2)
+```
 
-In the project directory, you can run:
+## Como rodar (3 passos, cada um num terminal)
 
-### `npm start`
+**1. Banco de dados (uma vez)**
+Abra `backend/sql/schema.sql` no MySQL Workbench e execute o script inteiro.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**2. Back-end** (porta 3001)
+```bash
+cd backend
+cp .env.example .env     # abra o .env e coloque a senha do seu MySQL e um SESSION_SECRET
+npm install
+npm run criar-admin -- admin admin123 "Administrador"   # cria um administrador (uma vez)
+npm start
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+**3. Front-end** (porta 3000)
+```bash
+# na raiz do projeto
+npm install
+npm start
+```
 
-### `npm test`
+Abra http://localhost:3000. Para cadastrar um cliente use a tela "Crie uma"; para testar o administrador entre com o usuário criado no passo 2.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Testes do back-end
 
-### `npm run build`
+```bash
+cd backend
+npm run teste-model   # banco + classes do Model
+npm run teste-auth    # cadastro, login, logout e acesso por perfil
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Mais detalhes: `backend/README.md` (Model) e `backend/README-AUTENTICACAO.md` (rotas, sessão e perfis).

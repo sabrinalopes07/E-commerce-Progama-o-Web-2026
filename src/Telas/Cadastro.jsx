@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import { ShoppingBag, Eye, EyeOff } from "lucide-react";
 import imgCadastro from "../Imagens/imgCadastro.png";
+import SucessoModal from "./SucessModal";
+import { api } from "../services/api";
+import { validarCadastro } from "../utils/validacaoCadastro";
 
 export default function Cadastro({ onSwitchToLogin }) {
   const [dadosFormulario, setDadosFormulario] = useState({
     nome: '',
+    login: '',
     email: '',
     senha: '',
     cpf: '',
@@ -14,14 +18,50 @@ export default function Cadastro({ onSwitchToLogin }) {
   // Estado para controlar se a senha está visível ou não
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
+  const [erros, setErros] = useState({}); // erros por campo: { email: "..." }
+  const [erroGeral, setErroGeral] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [cadastrado, setCadastrado] = useState(false);
+
   const handleChange = (e) => {
-    setDadosFormulario({ ...dadosFormulario, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setDadosFormulario({ ...dadosFormulario, [name]: value });
+    if (erros[name]) setErros({ ...erros, [name]: undefined }); // limpa o erro ao corrigir o campo
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Registo:', dadosFormulario);
+    setErroGeral('');
+
+    // Só envia ao servidor se tudo estiver correto
+    const errosEncontrados = validarCadastro(dadosFormulario);
+    if (Object.keys(errosEncontrados).length > 0) {
+      setErros(errosEncontrados);
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      // O CPF ainda não existe no banco (tabela usuario), por isso não é enviado.
+      const { cpf, ...dadosParaEnviar } = dadosFormulario;
+      await api.cadastrarCliente(dadosParaEnviar);
+      setCadastrado(true); // abre o modal de sucesso
+    } catch (err) {
+      setErros(err.erros || {}); // ex.: login já em uso (409)
+      setErroGeral(err.message);
+    } finally {
+      setEnviando(false);
+    }
   };
+
+  const fecharSucesso = () => {
+    setCadastrado(false);
+    if (onSwitchToLogin) onSwitchToLogin();
+  };
+
+  // Mensagem de erro exibida abaixo de cada campo
+  const msgErro = (campo) =>
+    erros[campo] ? <p className="mt-1 text-xs text-red-600">{erros[campo]}</p> : null;
 
   const inputStyle = {
     backgroundColor: '#ffffff',
@@ -48,7 +88,7 @@ export default function Cadastro({ onSwitchToLogin }) {
       </div>
 
       {/* Lado Direito: Formulário */}
-      <div className="relative flex w-full flex-col p-8 lg:w-1/2 overflow-hidden bg-[#EBF0F7]">
+      <div className="relative flex w-full flex-col p-8 lg:w-1/2 overflow-y-auto overflow-x-hidden bg-[#EBF0F7]">
         {/* Círculos Azuis Decorativos */}
         <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-blue-600 pointer-events-none"></div>
         <div className="absolute top-1/2 -right-16 h-40 w-40 -translate-y-1/2 rounded-full bg-blue-600 pointer-events-none"></div>
@@ -74,7 +114,7 @@ export default function Cadastro({ onSwitchToLogin }) {
           </h2>
 
           {/* Formulário */}
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <h3 className="text-2xl font-bold text-gray-700 [font-family:Roboto,sans-serif] mb-1">
               Cadastro
             </h3>
@@ -91,6 +131,23 @@ export default function Cadastro({ onSwitchToLogin }) {
                 required
                 style={inputStyle}
               />
+              {msgErro('nome')}
+            </div>
+
+            <div>
+              <label className="block text-x text-gray-700 mb-1 [font-family:Roboto,sans-serif]">
+                Usuário (para entrar no sistema)
+              </label>
+              <input
+                type="text"
+                name="login"
+                autoComplete="username"
+                value={dadosFormulario.login}
+                onChange={handleChange}
+                required
+                style={inputStyle}
+              />
+              {msgErro('login')}
             </div>
 
             <div>
@@ -105,6 +162,7 @@ export default function Cadastro({ onSwitchToLogin }) {
                 required
                 style={inputStyle}
               />
+              {msgErro('email')}
             </div>
 
             <div>
@@ -128,6 +186,7 @@ export default function Cadastro({ onSwitchToLogin }) {
                   {mostrarSenha ? <Eye className="h-5 w-5" /> : <EyeOff  className="h-5 w-5" />}
                 </button>
               </div>
+              {msgErro('senha')}
             </div>
 
             <div>
@@ -152,15 +211,24 @@ export default function Cadastro({ onSwitchToLogin }) {
                 name="endereco"
                 value={dadosFormulario.endereco}
                 onChange={handleChange}
+                required
                 style={inputStyle}
               />
+              {msgErro('endereco')}
             </div>
+
+            {erroGeral && (
+              <p role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-red-700">
+                {erroGeral}
+              </p>
+            )}
 
             <button
               type="submit"
-              className="w-full mt-4 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition [font-family:Roboto,sans-serif]"
+              disabled={enviando}
+              className="w-full mt-4 rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed [font-family:Roboto,sans-serif]"
             >
-              Criar Conta
+              {enviando ? 'Criando conta...' : 'Criar Conta'}
             </button>
           </form>
 
@@ -177,6 +245,9 @@ export default function Cadastro({ onSwitchToLogin }) {
 
         </div>
       </div>
+
+      {/* Modal de sucesso: ao fechar, volta para a tela de login */}
+      <SucessoModal isOpen={cadastrado} onClose={fecharSucesso} />
     </div>
   );
 }
