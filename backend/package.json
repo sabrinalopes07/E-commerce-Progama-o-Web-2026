@@ -3,8 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "criar-admin": "node scripts/criar-admin.js",
+    "teste-model": "node teste-model.js",
+    "teste-auth": "node teste-auth.js"
+  },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.5",
+    "express": "^5.3.0",
+    "express-session": "^1.19.0",
     "mysql2": "^3.11.0"
   }
 }

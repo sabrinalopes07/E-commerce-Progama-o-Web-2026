@@ -2,7 +2,8 @@
 
 Projeto final da disciplina (UFC). Stack: **React** (front-end), **Node.js** (back-end) e **MySQL** (banco).
 
-Este repositório contém, por enquanto, o **banco de dados** e a **camada Model** (TF02).
+Esta pasta (`backend/`) contém o **banco de dados**, a **camada Model** e a **API de login/cadastro** (TF02).
+Os comandos abaixo são executados **dentro de `backend/`**. O passo a passo completo (back-end + front-end) está no README da raiz.
 
 ## Como rodar na sua máquina
 
