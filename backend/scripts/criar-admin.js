@@ -1,4 +1,4 @@
-// Cria um ADMINISTRADOR direto no banco (o enunciado não exige tela para isso).
+// Cria um ADMINISTRADOR direto no banco.
 //
 // Uso:   node scripts/criar-admin.js <login> <senha> ["Nome do admin"]
 // Ex.:   node scripts/criar-admin.js admin admin123 "Administrador"
