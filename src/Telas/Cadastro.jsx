@@ -11,7 +11,6 @@ export default function Cadastro({ onSwitchToLogin }) {
     login: '',
     email: '',
     senha: '',
-    cpf: '',
     endereco: '',
   });
 
@@ -42,9 +41,7 @@ export default function Cadastro({ onSwitchToLogin }) {
 
     setEnviando(true);
     try {
-      // O CPF ainda não existe no banco (tabela usuario), por isso não é enviado.
-      const { cpf, ...dadosParaEnviar } = dadosFormulario;
-      await api.cadastrarCliente(dadosParaEnviar);
+      await api.cadastrarCliente(dadosFormulario);
       setCadastrado(true); // abre o modal de sucesso
     } catch (err) {
       setErros(err.erros || {}); // ex.: login já em uso (409)
@@ -187,19 +184,6 @@ export default function Cadastro({ onSwitchToLogin }) {
                 </button>
               </div>
               {msgErro('senha')}
-            </div>
-
-            <div>
-              <label className="block text-x text-gray-700 mb-1 [font-family:Roboto,sans-serif]">
-                CPF
-              </label>
-              <input
-                type="text"
-                name="cpf"
-                value={dadosFormulario.cpf}
-                onChange={handleChange}
-                style={inputStyle}
-              />
             </div>
 
             <div>

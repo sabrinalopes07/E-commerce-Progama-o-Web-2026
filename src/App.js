@@ -11,6 +11,7 @@ function App() {
   const [verificandoSessao, setVerificandoSessao] = useState(true);
   const [paginaAtual, setPaginaAtual] = useState("login"); // 'login' | 'cadastro'
   const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
+  const [aviso, setAviso] = useState(""); // mensagem exibida na tela de login
 
   // Ao abrir/recarregar a página, pergunta ao servidor se ainda existe uma sessão válida
   useEffect(() => {
@@ -21,13 +22,19 @@ function App() {
       .finally(() => setVerificandoSessao(false));
   }, []);
 
+  // Volta para a tela de login, deixando ninguém logado
+  const voltarParaLogin = (mensagem = "") => {
+    setUsuario(null);
+    setModalEdicaoAberto(false);
+    setPaginaAtual("login");
+    setAviso(mensagem);
+  };
+
   const sair = async () => {
     try {
       await api.logout();
     } finally {
-      setUsuario(null);
-      setModalEdicaoAberto(false);
-      setPaginaAtual("login");
+      voltarParaLogin();
     }
   };
 
@@ -40,8 +47,15 @@ function App() {
     return paginaAtual === "login" ? (
       <Login
         isOpen={true}
-        onLoginSuccess={setUsuario}
-        onSwitchToRegister={() => setPaginaAtual("cadastro")}
+        aviso={aviso}
+        onLoginSuccess={(u) => {
+          setAviso("");
+          setUsuario(u);
+        }}
+        onSwitchToRegister={() => {
+          setAviso("");
+          setPaginaAtual("cadastro");
+        }}
       />
     ) : (
       <Cadastro onSwitchToLogin={() => setPaginaAtual("login")} />
@@ -73,7 +87,13 @@ function App() {
         Sair
       </button>
 
-      <EditarUsuarioModal isOpen={modalEdicaoAberto} onClose={() => setModalEdicaoAberto(false)} />
+      <EditarUsuarioModal
+        isOpen={modalEdicaoAberto}
+        onClose={() => setModalEdicaoAberto(false)}
+        onSaved={(cliente) => setUsuario((u) => ({ ...u, nome: cliente.nome }))}
+        onDeleted={() => voltarParaLogin("Sua conta foi excluída.")}
+        onSessaoExpirada={() => voltarParaLogin("Sua sessão expirou. Entre novamente.")}
+      />
     </div>
   );
 }

@@ -4,7 +4,8 @@ import loginIMG from "../Imagens/imgLogin.png";
 import { api } from "../services/api";
 
 // onLoginSuccess(usuario) é chamado com { id, nome, perfil } ('CLIENTE' ou 'ADMIN') quando o login dá certo.
-export default function Login({ isOpen, onClose, onSwitchToRegister, onLoginSuccess }) {
+// aviso: mensagem opcional exibida acima do formulário (ex.: "Sua conta foi excluída.").
+export default function Login({ isOpen, onClose, onSwitchToRegister, onLoginSuccess, aviso }) {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
@@ -69,6 +70,12 @@ export default function Login({ isOpen, onClose, onSwitchToRegister, onLoginSucc
             <h3 className="text-3xl font-bold text-gray-700 [font-family:Roboto,sans-serif]">
               Entrar
             </h3>
+
+            {aviso && (
+              <p role="status" className="rounded-lg bg-green-50 border border-green-200 px-4 py-2 text-sm text-green-800">
+                {aviso}
+              </p>
+            )}
 
             <div>
               <label className="block text-xl font-medium text-gray-700 mb-1 [font-family:Roboto,sans-serif]">

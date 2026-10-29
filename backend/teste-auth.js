@@ -43,6 +43,7 @@ async function main() {
   const sufixo = Date.now();
   const loginCliente = 'cli_' + sufixo;
   const loginAdmin = 'adm_' + sufixo;
+  const loginCliente2 = 'cli2_' + sufixo; // cliente usado nos testes de alterar/excluir cadastro
   const senha = 'senha123';
   const dadosCliente = {
     nome: 'Maria da Silva', endereco: 'Rua das Flores, 100', email: 'maria@teste.com',
@@ -161,6 +162,106 @@ async function main() {
       assert.equal((await admin('GET', '/api/clientes/me')).status, 403);
     });
 
+    // ---- Alterar dados pessoais e excluir cadastro (TF02 - item 6.1) ----
+    // Aqui conferimos DIRETO NO BANCO (SELECT) se o dado mudou/sumiu de verdade.
+    const senha2 = 'senha123';
+    const cliente2 = criarNavegador();
+    let id2;
+    const noBanco = async (sql, params) => (await pool.query(sql, params))[0];
+
+    console.log('\n[Alterar dados pessoais]');
+    await passo('prepara um segundo cliente e faz login', async () => {
+      const c = await anonimo('POST', '/api/clientes', {
+        nome: 'Joao Pereira', endereco: 'Av. Central, 1', email: 'joao@teste.com', login: loginCliente2, senha: senha2,
+      });
+      assert.equal(c.status, 201);
+      id2 = c.json.id;
+      assert.equal((await cliente2('POST', '/api/auth/login', { login: loginCliente2, senha: senha2 })).status, 200);
+    });
+    await passo('sem sessão: PUT -> 401', async () => {
+      assert.equal((await anonimo('PUT', '/api/clientes/me', { nome: 'Hacker' })).status, 401);
+    });
+    await passo('admin tenta usar a rota do cliente -> 403', async () => {
+      assert.equal((await admin('PUT', '/api/clientes/me', { nome: 'Hacker' })).status, 403);
+    });
+    await passo('dados inválidos -> 400 com erro por campo, e nada muda no banco', async () => {
+      const r = await cliente2('PUT', '/api/clientes/me', { nome: 'A', email: 'ruim', endereco: 'x', senha: '123' });
+      assert.equal(r.status, 400);
+      assert.ok(r.json.erros.nome && r.json.erros.email && r.json.erros.endereco && r.json.erros.senha);
+      const [u] = await noBanco('SELECT nome, email FROM usuario WHERE id = ?', [id2]);
+      assert.equal(u.nome, 'Joao Pereira');
+      assert.equal(u.email, 'joao@teste.com');
+    });
+    await passo('corpo sem nenhum campo -> 400', async () => {
+      assert.equal((await cliente2('PUT', '/api/clientes/me', {})).status, 400);
+    });
+    await passo('altera nome, endereço e e-mail -> 200 e o BANCO muda', async () => {
+      const r = await cliente2('PUT', '/api/clientes/me', { nome: 'Joao Pereira Lima', endereco: 'Rua Nova, 500', email: 'joao.lima@teste.com' });
+      assert.equal(r.status, 200);
+      assert.equal(r.json.nome, 'Joao Pereira Lima');
+      assert.equal(r.json.senha, undefined);
+      const [u] = await noBanco('SELECT nome, endereco, email, login FROM usuario WHERE id = ?', [id2]);
+      assert.equal(u.nome, 'Joao Pereira Lima');
+      assert.equal(u.endereco, 'Rua Nova, 500');
+      assert.equal(u.email, 'joao.lima@teste.com');
+      assert.equal(u.login, loginCliente2);
+    });
+    await passo('tentar mudar o login ou o perfil é ignorado', async () => {
+      const r = await cliente2('PUT', '/api/clientes/me', { nome: 'Joao Pereira Lima', login: 'outro_login', perfil: 'ADMIN', id: 1 });
+      assert.equal(r.status, 200);
+      const [u] = await noBanco('SELECT login FROM usuario WHERE id = ?', [id2]);
+      assert.equal(u.login, loginCliente2);
+      assert.equal((await noBanco('SELECT 1 FROM adm WHERE id = ?', [id2])).length, 0);
+    });
+    await passo('o nome da sessão acompanha a alteração (/auth/me)', async () => {
+      assert.equal((await cliente2('GET', '/api/auth/me')).json.nome, 'Joao Pereira Lima');
+    });
+    await passo('senha em branco mantém a senha atual (hash não muda)', async () => {
+      const [antes] = await noBanco('SELECT senha FROM usuario WHERE id = ?', [id2]);
+      assert.equal((await cliente2('PUT', '/api/clientes/me', { nome: 'Joao Pereira Lima', senha: '' })).status, 200);
+      const [depois] = await noBanco('SELECT senha FROM usuario WHERE id = ?', [id2]);
+      assert.equal(depois.senha, antes.senha);
+    });
+    await passo('troca de senha: a antiga deixa de valer, a nova vale e fica em hash', async () => {
+      const [antes] = await noBanco('SELECT senha FROM usuario WHERE id = ?', [id2]);
+      assert.equal((await cliente2('PUT', '/api/clientes/me', { senha: 'novaSenha456' })).status, 200);
+      const [depois] = await noBanco('SELECT senha FROM usuario WHERE id = ?', [id2]);
+      assert.notEqual(depois.senha, antes.senha);
+      assert.notEqual(depois.senha, 'novaSenha456');
+      assert.equal((await criarNavegador()('POST', '/api/auth/login', { login: loginCliente2, senha: senha2 })).status, 401);
+      assert.equal((await criarNavegador()('POST', '/api/auth/login', { login: loginCliente2, senha: 'novaSenha456' })).status, 200);
+    });
+
+    console.log('\n[Excluir cadastro]');
+    await passo('sem sessão: DELETE -> 401', async () => {
+      assert.equal((await anonimo('DELETE', '/api/clientes/me', { senha: senha2 })).status, 401);
+    });
+    await passo('admin tenta usar a rota do cliente -> 403', async () => {
+      assert.equal((await admin('DELETE', '/api/clientes/me', { senha: senha })).status, 403);
+    });
+    await passo('sem senha -> 400; senha errada -> 403; a conta continua no banco', async () => {
+      assert.equal((await cliente2('DELETE', '/api/clientes/me', {})).status, 400);
+      assert.equal((await cliente2('DELETE', '/api/clientes/me', { senha: 'errada' })).status, 403);
+      assert.equal((await noBanco('SELECT 1 FROM usuario WHERE id = ?', [id2])).length, 1);
+      assert.equal((await cliente2('GET', '/api/clientes/me')).status, 200); // sessão segue válida
+    });
+    await passo('senha correta -> 200, apaga usuario, cliente e compras do BANCO', async () => {
+      await pool.query('INSERT INTO venda (id_cliente) VALUES (?)', [id2]); // compra do cliente
+      assert.equal((await noBanco('SELECT 1 FROM venda WHERE id_cliente = ?', [id2])).length, 1);
+
+      const r = await cliente2('DELETE', '/api/clientes/me', { senha: 'novaSenha456' });
+      assert.equal(r.status, 200);
+
+      assert.equal((await noBanco('SELECT 1 FROM usuario WHERE id = ?', [id2])).length, 0);
+      assert.equal((await noBanco('SELECT 1 FROM cliente WHERE id = ?', [id2])).length, 0);
+      assert.equal((await noBanco('SELECT 1 FROM venda WHERE id_cliente = ?', [id2])).length, 0);
+    });
+    await passo('depois de excluir: sessão encerrada e não dá mais para logar', async () => {
+      assert.equal((await cliente2('GET', '/api/clientes/me')).status, 401);
+      assert.equal((await cliente2('GET', '/api/auth/me')).status, 401);
+      assert.equal((await criarNavegador()('POST', '/api/auth/login', { login: loginCliente2, senha: 'novaSenha456' })).status, 401);
+    });
+
     console.log('\n[Logout]');
     await passo('logout encerra a sessão: depois disso -> 401', async () => {
       assert.equal((await cliente('POST', '/api/auth/logout')).status, 200);
@@ -183,7 +284,7 @@ async function main() {
       assert.equal(res.status, 400);
     });
   } finally {
-    await pool.query('DELETE FROM usuario WHERE login IN (?, ?)', [loginCliente, loginAdmin]);
+    await pool.query('DELETE FROM usuario WHERE login IN (?, ?, ?)', [loginCliente, loginAdmin, loginCliente2]);
     servidor.close();
     await pool.end();
   }

@@ -14,8 +14,8 @@ router.get('/auth/me', auth.me);
 
 // ----- Área exclusiva do CLIENTE -----
 router.get('/clientes/me', exigirCliente, clientes.meusDados);
-// (Membro 3: PUT /clientes/me e DELETE /clientes/me entram aqui, protegidas por exigirCliente.
-//  Após excluir a conta, chame destruirSessao(req, res) de middleware/auth.js.)
+router.put('/clientes/me', exigirCliente, clientes.atualizar); // alterar dados pessoais
+router.delete('/clientes/me', exigirCliente, clientes.excluir); // excluir o próprio cadastro
 
 // ----- Área exclusiva do ADMINISTRADOR -----
 router.get('/admin/me', exigirAdmin, admin.meusDados);

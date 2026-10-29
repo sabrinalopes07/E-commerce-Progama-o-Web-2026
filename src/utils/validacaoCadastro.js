@@ -23,3 +23,16 @@ export function validarCadastro({ nome = "", login = "", email = "", senha = "",
 
   return erros;
 }
+
+// Validação do formulário de edição dos dados pessoais.
+// A senha é opcional: em branco = manter a senha atual.
+export function validarEdicao({ nome = "", email = "", endereco = "", senha = "" }) {
+  const erros = {};
+
+  if (nome.trim().length < 3) erros.nome = "Informe o nome completo.";
+  if (!REGEX_EMAIL.test(email.trim())) erros.email = "Informe um e-mail válido.";
+  if (endereco.trim().length < 5) erros.endereco = "Informe o endereço.";
+  if (senha !== "" && senha.length < 6) erros.senha = "A nova senha deve ter pelo menos 6 caracteres.";
+
+  return erros;
+}

@@ -7,6 +7,7 @@ export default function EditarModalBase({
   onCancel,
   onSave,
   saveText = "Salvar",
+  saveDisabled = false,
 }) {
   if (!isOpen) return null;
 
@@ -49,7 +50,8 @@ export default function EditarModalBase({
             <button
               type="button"
               onClick={onSave}
-              className="px-6 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition shadow-md [font-family:Roboto,sans-serif]"
+              disabled={saveDisabled}
+              className="px-6 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition shadow-md disabled:opacity-60 disabled:cursor-not-allowed [font-family:Roboto,sans-serif]"
             >
               {saveText}
             </button>

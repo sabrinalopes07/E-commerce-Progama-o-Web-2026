@@ -45,4 +45,8 @@ export const api = {
   logout: () => requisicao("POST", "/auth/logout"),
   usuarioLogado: () => requisicao("GET", "/auth/me"), // 401 se não houver sessão
   meusDadosCliente: () => requisicao("GET", "/clientes/me"),
+  // Altera os dados pessoais. Envie só o que mudou: { nome, email, endereco, senha? }
+  atualizarMeusDados: (dados) => requisicao("PUT", "/clientes/me", dados),
+  // Exclui o cadastro (e as compras) do cliente logado. Exige a senha para confirmar.
+  excluirMinhaConta: (senha) => requisicao("DELETE", "/clientes/me", { senha }),
 };
