@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ShoppingBag, Eye, EyeOff } from "lucide-react";
 import imgCadastro from "../Imagens/imgCadastro.png";
 
-export default function Cadastro({ onSwitchToLogin }) {
+export default function Cadastro({ onSwitchToLogin, onBackToHome }) {
   const [dadosFormulario, setDadosFormulario] = useState({
     nome: '',
     email: '',

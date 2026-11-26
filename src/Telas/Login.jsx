@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { ShoppingBag, X } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import loginIMG from "../Imagens/imgLogin.png";
 
-export default function Login({ isOpen, onClose, onSwitchToRegister }) {
+export default function Login({ onSwitchToRegister, onBackToHome }) {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
-
-  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,7 +12,6 @@ export default function Login({ isOpen, onClose, onSwitchToRegister }) {
   };
 
   return (
-    /* Container principal da PÁGINA (ocupa a tela toda) */
     <div className="flex h-screen w-screen overflow-hidden bg-white">
       {/* Lado Esquerdo: Imagem ocupando exatamente metade da tela */}
       <div className="hidden w-1/2 lg:block relative">
@@ -35,13 +32,15 @@ export default function Login({ isOpen, onClose, onSwitchToRegister }) {
 
         {/* Conteúdo Principal */}
         <div className="relative z-10 flex flex-col w-full max-w-[700px] mx-auto pt-8">
+ 
+
           {/* Logo / Marca */}
           <div className="flex items-center gap-2 mb-12">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
               <ShoppingBag className="h-6 w-6" />
             </div>
 
-            <span className="font-bold text-gray-900 text-ms">
+            <span className="font-bold text-gray-900 text-sm">
               E-commercePW
             </span>
           </div>
@@ -52,26 +51,26 @@ export default function Login({ isOpen, onClose, onSwitchToRegister }) {
           </h2>
 
           {/* Formulário */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <h3 className="text-3xl font-bold text-gray-700 [font-family:Roboto,sans-serif]">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <h3 className="text-2xl font-bold text-gray-700 [font-family:Roboto,sans-serif]">
               Entrar
             </h3>
 
             <div>
-              <label className="block text-xl font-medium text-gray-700 mb-1 [font-family:Roboto,sans-serif]">
+              <label className="block text-[16px] font-medium text-gray-700 mb-2 [font-family:Roboto,sans-serif]">
                 Usuário
               </label>
               <input
-                type="usuario"
+                type="text"
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
                 required
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-blue-500 focus:outline-none transition shadow-sm "
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 focus:border-blue-500 focus:outline-none transition shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xl font-medium text-gray-700 mb-1 [font-family:Roboto,sans-serif]">
+              <label className="block text-[16px] font-medium text-gray-700 mb-2 [font-family:Roboto,sans-serif]">
                 Senha
               </label>
               <input
@@ -85,29 +84,27 @@ export default function Login({ isOpen, onClose, onSwitchToRegister }) {
 
             <button
               type="submit"
-              className="w-full mt-6 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition [font-family:Roboto,sans-serif] "
+              className="w-full mt-6 rounded-lg bg-blue-600 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-700 transition cursor-pointer [font-family:Roboto,sans-serif]"
             >
               Entrar
             </button>
 
             {/* Divisor Ou */}
-            <div className="my-6 flex items-center justify-center gap-3 ">
+            <div className="my-6 flex items-center justify-center gap-3">
               <div className="h-[2px] w-24 bg-gray-400" />
-              <span className="text-xm text-gray-500 font-medium">Ou</span>
+              <span className="text-sm text-gray-500 font-medium">Ou</span>
               <div className="h-[2px] w-24 bg-gray-400" />
             </div>
-
           </form>
 
           {/* Botão para criar conta */}
           <button
             type="button"
             onClick={onSwitchToRegister}
-            className="w-full rounded-lg border border-gray-300  py-2.5 text-xm font-medium text-gray-800 hover:bg-gray-50 transition shadow-sm mt-8"
+            className="w-full rounded-lg border border-gray-300 bg-white py-2.5 text-sm font-medium text-gray-800 hover:bg-gray-50 transition shadow-sm mt-8 cursor-pointer"
           >
             Não possui conta? Crie uma
           </button>
-
         </div>
       </div>
     </div>
